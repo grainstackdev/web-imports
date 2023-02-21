@@ -11,11 +11,12 @@ if (!nodeModulesPath.endsWith('node_modules')) {
   nodeModulesPath = path.resolve(__dirname, '../node_modules')
 }
 
-function makeReplacer(prefix) {
+function makeReplacer(prefix, file) {
   return function replacer(match, _1, bareSpecifier, _3, offset, string, done) {
     resolve(bareSpecifier, import.meta.url).then(url => {
       if (!url.startsWith('file://')) {
         // throw new Error('import was not a file:// but instead was ' + url)
+        // console.warn(``)
         return done(match) // equivalent to not replacing anything.
       }
       const filepath = url.slice(7)
@@ -23,16 +24,22 @@ function makeReplacer(prefix) {
       const absoluteImportPath = prefix + directImportPath
       done(null, `${_1}${absoluteImportPath}${_3}`)
     }).catch(err => {
+      if (err.message.startsWith('Cannot find package')) {
+        const message = err.message.match(/Cannot find package '.*'/g)?.[0]
+        console.warn(`[web-imports] ${message}\nFile: ${file}\nLine: ${match}`)
+      } else {
+        console.warn(`[web-imports] ${err.message}`)
+      }
       done(match)
     })
   }
 }
 
-export async function transformImports(contents, prefix) {
+export async function transformImports(contents, prefix, file) {
   prefix = prefix || '/node_modules/'
   return new Promise((resolve) => {
     // todo skip commented imports
-    asyncReplace(contents, /((?:import|export).* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix), (err, result) => {
+    asyncReplace(contents, /((?:import|export).* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
       if (err) {
         // console.error(err)
       }
