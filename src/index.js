@@ -25,8 +25,8 @@ function makeReplacer(prefix, file) {
       done(null, `${_1}${absoluteImportPath}${_3}`)
     }).catch(err => {
       if (err.message.startsWith('Cannot find package')) {
-        const message = err.message.match(/Cannot find package '.*'/g)?.[0]
-        console.warn(`[web-imports] ${message}\nFile: ${file}\nLine: ${match}`)
+        // const message = err.message.match(/Cannot find package '.*'/g)?.[0]
+        console.warn(`[web-imports] ${err.message}\nFile: ${file}\nLine: ${match}`)
       } else {
         console.warn(`[web-imports] ${err.message}`)
       }
