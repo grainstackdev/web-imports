@@ -1,6 +1,6 @@
 {
   "name": "web-imports",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "license": "MIT",
   "description": "Enables the browser to import from `node_modules`",
   "keywords": [
