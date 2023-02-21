@@ -5,6 +5,7 @@
   "bin": "src/cli.js",
   "main": "src/index.js",
   "type": "module",
+  "description": "Enables the browser to import from `node_modules`",
   "dependencies": {
     "async-replace": "1.0.1",
     "glob": "8.1.0",
