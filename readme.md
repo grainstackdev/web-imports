@@ -18,20 +18,20 @@ In both cases, `web-imports` transforms JS files so that any imports with bare s
 For example,
 
 ```js
-import grainstack from 'grainstack'
+import grainbox from 'grainbox'
 ```
 
-becomes
+might become
 
 ```js
-import grainstack from '/node_modules/grainstack/esm/index.js'
+import grainbox from '/node_modules/grainbox/dist/esm/index.mjs'
 ```
 
 ### Static Site Generation
 
 For SSG, run `web-imports` as a CLI tool, and pass it a glob of all the files to transform. 
 
-In the example below, it is assumed that your `build` script has created a folder called `artifact` containing everything that will be uploaded to the static site hosting provider. So there should be a copy of `node_modules` at `artifact/node_modules`. 
+In the example below, it is assumed that your `build` script has created a folder called `artifact` containing everything that will be uploaded to the static site hosting provider. So there should be a copy of `node_modules` at `artifact/node_modules`.
 
 ```json5
 // package.json
@@ -92,7 +92,8 @@ npx web-imports --glob 'artifact/**/*.{js,mjs}' [--prefix '/node_modules/']
 ```js
 import {transformImports} from 'web-imports'
 const prefix = '/node_modules/' // optional parameter
-js = transformImports(js, prefix)
+const filename = '' // optional parameter
+js = transformImports(js, prefix, filename)
 ```
 
 `transformImports` is not expected to throw any errors.
@@ -102,10 +103,6 @@ js = transformImports(js, prefix)
 If the package name cannot be found, then the import statement will not be transformed.
 
 Commented import statements will still be transformed if the package name can be found.
-
-In order to have a statically served site support importing from `node_modules`, both your code in `build` and the code in `node_modules` needs to be transformed from bare specifiers into absolute paths starting with `/node_modules/`. These transformations must consider subpath exports and conditional exports using `resolve-pkg-maps`. Statically uploaded code should all have `/node_modules/` prepended.
-
-A different deployment procedure allows for a SSR scheme where instead of prepending `/node_modules/` before uploading, files are transformed just before the server responds to a request. Note that if the server is running both front-end and back-end files, then `node_modules` might contain dependencies for one or the other, or both. But since the transformation happens not on disk, but just before response, there will be no clashing.
 
 ## Todo
 

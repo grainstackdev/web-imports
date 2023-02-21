@@ -37,6 +37,7 @@ function makeReplacer(prefix, file) {
 
 export async function transformImports(contents, prefix, file) {
   prefix = prefix || '/node_modules/'
+  file = file || 'Pass in filename for debugging purposes.'
   return new Promise((resolve) => {
     // todo skip commented imports
     asyncReplace(contents, /((?:import|export).* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
