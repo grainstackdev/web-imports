@@ -19,6 +19,9 @@
   "bin": "src/cli.js",
   "main": "src/index.js",
   "type": "module",
+  "scripts": {
+    "readme": "git add . && git commit -m 'readme' && npm version patch && git push && npm publish"
+  },
   "dependencies": {
     "async-replace": "1.0.1",
     "glob": "8.1.0",
