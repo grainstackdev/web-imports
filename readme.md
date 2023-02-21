@@ -2,6 +2,8 @@
 
 > Enables the browser to import from `node_modules`
 
+Check if [import maps](https://github.com/WICG/import-maps) are released first before using.
+
 ### How
 
 * Use bare specifiers when importing from `node_modules` in your `src` code.
