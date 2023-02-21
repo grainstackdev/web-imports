@@ -106,3 +106,7 @@ Commented import statements will still be transformed if the package name can be
 In order to have a statically served site support importing from `node_modules`, both your code in `build` and the code in `node_modules` needs to be transformed from bare specifiers into absolute paths starting with `/node_modules/`. These transformations must consider subpath exports and conditional exports using `resolve-pkg-maps`. Statically uploaded code should all have `/node_modules/` prepended.
 
 A different deployment procedure allows for a SSR scheme where instead of prepending `/node_modules/` before uploading, files are transformed just before the server responds to a request. Note that if the server is running both front-end and back-end files, then `node_modules` might contain dependencies for one or the other, or both. But since the transformation happens not on disk, but just before response, there will be no clashing.
+
+## Todo
+
+There is probably a need for a mode which causes the prefix to be a variable relative path to node_modules rather than a static prefix setting. This would be useful in some cases where unpkg is being used.

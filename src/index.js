@@ -4,6 +4,7 @@ import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// assumes this script is running from within node_modules.
 let nodeModulesPath = path.resolve(__dirname, '../..')
 if (!nodeModulesPath.endsWith('node_modules')) {
   // When developing this script, this branch should run.
@@ -33,9 +34,9 @@ export async function transformImports(contents, prefix) {
     // todo skip commented imports
     asyncReplace(contents, /((?:import|export).* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix), (err, result) => {
       if (err) {
-        console.error(err)
+        // console.error(err)
       }
-      resolve(result)
+      resolve(result || contents)
     })
   })
 }
