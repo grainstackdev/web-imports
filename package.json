@@ -1,0 +1,14 @@
+{
+  "name": "web-imports",
+  "version": "1.0.0",
+  "license": "MIT",
+  "bin": "src/cli.js",
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {
+    "async-replace": "1.0.1",
+    "glob": "8.1.0",
+    "import-meta-resolve": "2.2.1",
+    "minimist": "1.2.8"
+  }
+}
