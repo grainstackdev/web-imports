@@ -113,3 +113,5 @@ There is probably a need for a mode which causes the prefix to be a variable rel
 Support dynamic imports of bare specifiers.
 
 This currently works by using a regexp to find the import statements. It does not detect dynamic imports, and sometimes, there can be a false positive match. To fix this, a strategy similar to the implementation of `jsx-to-hyperscript` can be used, I.E. tokenizing the file, and then identifying when import statements happen by keeping track of when a scope is entered or exited.
+
+web-imports should only transform files which are included in NPM. See the `files` field documentation. Avoid transforming files which import devDependencies. These are not installed into node_modules when they are distributed as a dependency.
