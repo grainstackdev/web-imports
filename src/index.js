@@ -1,4 +1,5 @@
 import {resolve} from 'import-meta-resolve'
+import chalk from 'chalk'
 import asyncReplace from './asyncReplace.js'
 import escalade from 'escalade'
 import fs from 'fs'
@@ -39,25 +40,47 @@ function makeReplacer(prefix, file) {
     // Check if the package is a devDependencies
     const packageName = getPackageName(bareSpecifier)
     const pkg = await getPackage(file)
-    if (pkg.devDependencies[packageName]) {
+    if ((pkg.devDependencies || {})[packageName]) {
       return match
     }
 
     try {
-      const url = await resolve(bareSpecifier, import.meta.url)
-      if (!url.startsWith('file://')) {
-        // throw new Error('import was not a file:// but instead was ' + url)
-        // console.warn(``)
-        return match // equivalent to not replacing anything.
+      let url
+
+      try {
+        url = await resolve(bareSpecifier, import.meta.url)
+        if (!url.startsWith('file://')) {
+          // throw new Error('import was not a file:// but instead was ' + url)
+          // console.warn(``)
+          return match // equivalent to not replacing anything.
+        }
+      } catch (err) {
+        if (bareSpecifier === 'preact' || bareSpecifier === 'react') {
+          // Do not throw, these will be filled in with fallback values
+          // in order to allow htm to be transformed without preact or react.
+          url = ''
+        } else {
+          throw err
+        }
       }
+
       const filepath = url.slice(7)
       const directImportPath = path.relative(nodeModulesPath, filepath)
-      const absoluteImportPath = prefix + directImportPath
+      let absoluteImportPath = prefix + directImportPath
+
+      if (!url) {
+        if (bareSpecifier === 'preact') {
+          absoluteImportPath = '/node_modules/preact/dist/preact.mjs'
+        } else if (bareSpecifier === 'react') {
+          absoluteImportPath = '/node_modules/react/index.js'
+        }
+      }
+
       return `${_1}${absoluteImportPath}${_3}`
     } catch (err) {
       if (err.message.startsWith('Cannot find package')) {
-        // const message = err.message.match(/Cannot find package '.*'/g)?.[0]
-        console.warn(`[web-imports] ${err.message}\nFile: ${file}\nLine: ${match}`)
+        const message = err.message.match(/Cannot find package '.*'/g)?.[0]
+        console.warn(`${chalk.cyan('[web-imports]')} ${message}\n${chalk.yellow('File:')} ${file}\n${chalk.yellow('Line:')} ${match}`)
       } else {
         console.warn(`[web-imports] ${err.message}`)
       }

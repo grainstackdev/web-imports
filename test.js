@@ -11,7 +11,9 @@ import {
   resolve
 } from '/node_modules/import-meta-resolve/index.js'
 import escalade from '/node_modules/escalade/dist/index.mjs'
-import grainbox from 'grainbox'`
+import grainbox from 'grainbox'
+import {render} from '/node_modules/preact/dist/preact.mjs'
+import {render} from '/node_modules/react/index.js'`
 
 test('transformImports', async (t) => {
   const out = await transformImports(actual, testFilePath)
