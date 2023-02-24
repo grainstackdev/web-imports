@@ -39,9 +39,19 @@ export async function transformImports(contents, prefix, file) {
   prefix = prefix || '/node_modules/'
   file = file || 'Pass in filename for debugging purposes.'
 
-  const result = await new Promise((resolve) => {
-    // replace one-liner imports or aggregate exports:
-    asyncReplace(contents, /(?<=^|\n)((?:import|export).* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
+  let result = await new Promise((resolve) => {
+    // replace one-liner imports:
+    asyncReplace(contents, /(?<=^|\n)(import.* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
+      if (err) {
+        // console.error(err)
+      }
+      resolve(result || contents)
+    })
+  })
+
+  result = await new Promise((resolve) => {
+    // replace one-liner exports:
+    asyncReplace(contents, /(?<=^|\n)(export.* from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
       if (err) {
         // console.error(err)
       }
