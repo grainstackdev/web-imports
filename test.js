@@ -1,24 +1,20 @@
 import test from 'tape'
+import fs from 'fs'
+import path from 'path'
 import {transformImports} from "./src/index.js";
 
-const actual = `
-import grainbox from 'grainbox'
-import * as grainbox from 'grainbox/reactivity'
-import {
-  h
-} from 'grainbox'
-`
+const testFilePath = path.resolve('./_test.js')
+const actual = fs.readFileSync(testFilePath, {encoding: "utf-8"})
 
-const expected = `
-import grainbox from '/node_modules/grainbox/dist/esm/index.mjs'
-import * as grainbox from '/node_modules/grainbox/dist/esm/reactivity.mjs'
+const expected = `import path, { dirname } from 'path'
 import {
-  h
-} from '/node_modules/grainbox/dist/esm/index.mjs'
-`
+  resolve
+} from '/node_modules/import-meta-resolve/index.js'
+import escalade from '/node_modules/escalade/dist/index.mjs'
+import grainbox from 'grainbox'`
 
 test('transformImports', async (t) => {
-  const out = await transformImports(actual)
+  const out = await transformImports(actual, testFilePath)
   t.equal(out, expected)
 })
 

@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 
 import fs from 'fs'
+import path from 'path'
 import glob from "glob"
 import minimist from "minimist"
 import {transformImports} from './index.js'
 
 const args = minimist(process.argv.slice(2))
-const g = args['glob']
+const g = args['glob'] || args._[0]
 const prefix = args['prefix'] || '/node_modules/'
 
 glob(g, {}, async (err, files) => {
   for (const file of files) {
+    const filepath = path.resolve(file)
     console.log("[web-imports]", file)
-    if (!fs.lstatSync(file).isDirectory()) {
-      const str = fs.readFileSync(file, { encoding: "utf8" })
-      const out = await transformImports(str, prefix, file)
-      fs.writeFileSync(file, out, "utf8")
+    if (!fs.lstatSync(filepath).isDirectory()) {
+      const str = fs.readFileSync(filepath, { encoding: "utf8" })
+      const out = await transformImports(str, filepath, prefix)
+      fs.writeFileSync(filepath, out, "utf8")
     }
   }
 })

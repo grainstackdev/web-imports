@@ -39,7 +39,7 @@ In the example below, it is assumed that your `build` script has created a folde
 // package.json
 {
   "scripts": {
-    "predeploy": "web-imports --glob 'artifact/**/*.{js,mjs}'"
+    "predeploy": "web-imports 'artifact/**/*.{js,mjs}'"
   }
 }
 ```
@@ -83,10 +83,10 @@ app.listen(3000)
 ### CLI Usage
 
 ```
-npx web-imports --glob 'artifact/**/*.{js,mjs}' [--prefix '/node_modules/']
+npx web-imports 'artifact/**/*.{js,mjs}' [--prefix '/node_modules/']
 ```
 
-* `--glob` - Required. A glob selecting all files to transform.
+* `<glob>` - Required. A glob selecting all files to transform.
 * `--prefix` - Optional. Equal to `/node_modules/` by default.
 
 ### Programmatic Usage

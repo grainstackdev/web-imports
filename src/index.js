@@ -1,5 +1,7 @@
 import {resolve} from 'import-meta-resolve'
-import asyncReplace from 'async-replace'
+import asyncReplace from './asyncReplace.js'
+import escalade from 'escalade'
+import fs from 'fs'
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -11,63 +13,73 @@ if (!nodeModulesPath.endsWith('node_modules')) {
   nodeModulesPath = path.resolve(__dirname, '../node_modules')
 }
 
+function getPackageName(bareSpecifier) {
+  let packageName
+  if (bareSpecifier.startsWith('@')) {
+    packageName = bareSpecifier.split('/').slice(0, 2)
+  } else {
+    packageName = bareSpecifier.split('/')[0]
+  }
+  return packageName
+}
+
+async function getPackage(file) {
+  const pkgPath = await escalade(file, (dir, names) => {
+    if (names.includes('package.json')) {
+      return 'package.json'
+    }
+  })
+  const pkgContents = fs.readFileSync(pkgPath, {encoding: "utf-8"})
+  const pkg = JSON.parse(pkgContents)
+  return pkg
+}
+
 function makeReplacer(prefix, file) {
-  return function replacer(match, _1, bareSpecifier, _3, offset, string, done) {
-    resolve(bareSpecifier, import.meta.url).then(url => {
+  return async function replacer(match, _1, bareSpecifier, _3, offset, string) {
+    // Check if the package is a devDependencies
+    const packageName = getPackageName(bareSpecifier)
+    const pkg = await getPackage(file)
+    if (pkg.devDependencies[packageName]) {
+      return match
+    }
+
+    try {
+      const url = await resolve(bareSpecifier, import.meta.url)
       if (!url.startsWith('file://')) {
         // throw new Error('import was not a file:// but instead was ' + url)
         // console.warn(``)
-        return done(match) // equivalent to not replacing anything.
+        return match // equivalent to not replacing anything.
       }
       const filepath = url.slice(7)
       const directImportPath = path.relative(nodeModulesPath, filepath)
       const absoluteImportPath = prefix + directImportPath
-      done(null, `${_1}${absoluteImportPath}${_3}`)
-    }).catch(err => {
+      return `${_1}${absoluteImportPath}${_3}`
+    } catch (err) {
       if (err.message.startsWith('Cannot find package')) {
         // const message = err.message.match(/Cannot find package '.*'/g)?.[0]
         console.warn(`[web-imports] ${err.message}\nFile: ${file}\nLine: ${match}`)
       } else {
         console.warn(`[web-imports] ${err.message}`)
       }
-      done(match)
-    })
+      return match
+    }
   }
 }
 
-export async function transformImports(contents, prefix, file) {
+export async function transformImports(contents, file, prefix) {
   prefix = prefix || '/node_modules/'
-  file = file || 'Pass in filename for debugging purposes.'
+  if (!file || !file.startsWith('/')) {
+    throw new Error('An absolute filepath must be specified.')
+  }
 
-  let result = await new Promise((resolve) => {
-    // replace one-liner imports:
-    asyncReplace(contents, /(?<=^|\n)(import.* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
-      if (err) {
-        // console.error(err)
-      }
-      resolve(result || contents)
-    })
-  })
+  // single line import statements
+  let res = await asyncReplace(contents, /(?<=^|\n)(import.* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
 
-  result = await new Promise((resolve) => {
-    // replace one-liner exports:
-    asyncReplace(result, /(?<=^|\n)(export.* from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
-      if (err) {
-        // console.error(err)
-      }
-      resolve(result || contents)
-    })
-  })
+  // single line export statements
+  res = await asyncReplace(res, /(?<=^|\n)(export.* from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
 
-  return await new Promise((resolve) => {
-    // replace multi-line import or export:
-    asyncReplace(result, /(?<=^|\n)((?:import|export) {\n(?:.|\n)+?\n} from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
-      if (err) {
-        // console.error(err)
-      }
-      resolve(result || contents)
-    })
-  })
+  // multiple line import/export statements
+  return await asyncReplace(res, /(?<=^|\n)((?:import|export) {\n(?:.|\n)+?\n} from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
 }
 
 // es modules must be used because import.meta.url is used.
