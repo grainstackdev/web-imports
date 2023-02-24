@@ -12,8 +12,10 @@ const prefix = args['prefix'] || '/node_modules/'
 glob(g, {}, async (err, files) => {
   for (const file of files) {
     console.log("[web-imports]", file)
-    const str = fs.readFileSync(file, { encoding: "utf8" })
-    const out = await transformImports(str, prefix, file)
-    fs.writeFileSync(file, out, "utf8")
+    if (!fs.lstatSync(file).isDirectory()) {
+      const str = fs.readFileSync(file, { encoding: "utf8" })
+      const out = await transformImports(str, prefix, file)
+      fs.writeFileSync(file, out, "utf8")
+    }
   }
 })
