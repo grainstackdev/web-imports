@@ -1,31 +1,26 @@
-//
+import test from 'tape'
+import {transformImports} from "./src/index.js";
 
-import 'history-events'
-export * as qss from 'qss'
-import { reactive } from './reactivity.mjs'
+const actual = `
+import grainbox from 'grainbox'
+import * as grainbox from 'grainbox/reactivity'
+import {
+  h
+} from 'grainbox'
+`
 
-const push = (path, options) => {
-  const { search, state, hash } = options ?? {}
-  let url = path
-  if (search) {
-    url += qss.encode(search)
-  }
-  if (hash) {
-    url += `#${hash}`
-  }
-  window.history.pushState(state, '', url)
-}
+const expected = `
+import grainbox from '/node_modules/grainbox/dist/esm/index.mjs'
+import * as grainbox from '/node_modules/grainbox/dist/esm/reactivity.mjs'
+import {
+  h
+} from '/node_modules/grainbox/dist/esm/index.mjs'
+`
 
-export const history = reactive({
-  location: {
-    ...window.location,
-  },
-  push,
-  clearSearch: () => {
-    push(window.location.pathname)
-  },
+test('transformImports', async (t) => {
+  const out = await transformImports(actual)
+  t.equal(out, expected)
 })
 
-window.addEventListener('changestate', () => {
-  history.location = { ...window.location }
-})
+
+
