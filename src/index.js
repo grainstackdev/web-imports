@@ -96,13 +96,13 @@ export async function transformImports(contents, file, prefix) {
   }
 
   // single line import statements
-  let res = await asyncReplace(contents, /(?<=^|\n)(import.* (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
+  let res = await asyncReplace(contents, /(?<=^|\n)(import.* (?:'|"))(?!\.?\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
 
   // single line export statements
-  res = await asyncReplace(res, /(?<=^|\n)(export.* from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
+  res = await asyncReplace(res, /(?<=^|\n)(export.* from (?:'|"))(?!\.?\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
 
   // multiple line import/export statements
-  return await asyncReplace(res, /(?<=^|\n)((?:import|export) {\n(?:.|\n)+?\n} from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
+  return await asyncReplace(res, /(?<=^|\n)((?:import|export) {\n(?:.|\n)+?\n} from (?:'|"))(?!\.?\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file))
 }
 
 // es modules must be used because import.meta.url is used.
