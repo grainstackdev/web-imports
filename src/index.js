@@ -82,7 +82,7 @@ function makeReplacer(prefix, file) {
         const message = err.message.match(/Cannot find package '.*'/g)?.[0]
         console.warn(`${chalk.cyan('[web-imports]')} ${message}\n${chalk.yellow('File:')} ${file}\n${chalk.yellow('Line:')} ${match}`)
       } else {
-        console.warn(`${chalk.cyan('[web-imports]')} ${err.message}`)
+        console.warn(`${chalk.cyan('[web-imports]')} ${err.message}\n${chalk.yellow('File:')} ${file}\n${chalk.yellow('Line:')} ${match}`)
       }
       return match
     }
