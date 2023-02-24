@@ -51,7 +51,7 @@ export async function transformImports(contents, prefix, file) {
 
   result = await new Promise((resolve) => {
     // replace one-liner exports:
-    asyncReplace(contents, /(?<=^|\n)(export.* from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
+    asyncReplace(result, /(?<=^|\n)(export.* from (?:'|"))(?!\.\.?\/|http)(.*)('|")/g, makeReplacer(prefix, file), (err, result) => {
       if (err) {
         // console.error(err)
       }
