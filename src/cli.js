@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import glob from "glob"
 import minimist from "minimist"
-import chalk from 'chalk'
+import chalk from 'ansi-colors'
 import {transformImports} from './index.js'
 
 const args = minimist(process.argv.slice(2))

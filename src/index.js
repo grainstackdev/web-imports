@@ -1,5 +1,5 @@
 import {resolve} from 'import-meta-resolve'
-import chalk from 'chalk'
+import chalk from 'ansi-colors'
 import asyncReplace from './asyncReplace.js'
 import escalade from 'escalade'
 import fs from 'fs'
