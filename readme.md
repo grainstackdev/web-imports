@@ -108,7 +108,7 @@ Commented import statements will still be transformed if the package name can be
 
 ## Current Issues and Todos
 
-There is probably a need for a mode which causes the prefix to be a variable relative path to node_modules rather than a static prefix setting. This would be useful in some cases where unpkg is being used.
+There is probably a need for a mode which causes the prefix to be a variable relative path to node_modules rather than a static prefix setting. This would be useful in some cases where CDN is being used.
 
 Support dynamic imports of bare specifiers.
 
