@@ -106,8 +106,10 @@ If the package name cannot be found, then the import statement will not be trans
 
 Commented import statements will still be transformed if the package name can be found.
 
-## Todo
+## Current Issues and Todos
 
 There is probably a need for a mode which causes the prefix to be a variable relative path to node_modules rather than a static prefix setting. This would be useful in some cases where unpkg is being used.
 
 Support dynamic imports of bare specifiers.
+
+This currently works by using a regexp to find the import statements. It does not detect dynamic imports, and sometimes, there can be a false positive match. To fix this, a strategy similar to the implementation of `jsx-to-hyperscript` can be used, I.E. tokenizing the file, and then identifying when import statements happen by keeping track of when a scope is entered or exited.
