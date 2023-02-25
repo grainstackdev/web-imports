@@ -66,6 +66,12 @@ function makeReplacer(prefix, file) {
       const depPackage = await getDependencyPackage(packageName, file)
       const topPackage = await getTopLevelPackage(file)
 
+      const isDevDep = (topPackage.devDependencies || {})[packageName] || !depPackage || (depPackage.devDependencies || {})[packageName]
+      if (isDevDep) {
+        // devDeps are not transformed.
+        return match
+      }
+
       if (!depPackage || !topPackage) {
         // This could happen because the dep is not installed to node_modules,
         // and one of those reasons could be because the import is a built-in node:module.
@@ -76,12 +82,6 @@ function makeReplacer(prefix, file) {
           // non-files are not transformed.
           return match
         }
-      }
-
-      const isDevDep = (topPackage.devDependencies || {})[packageName]
-      if (isDevDep) {
-         // devDeps are not transformed.
-        return match
       }
 
       const relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0] || depPackage.main
