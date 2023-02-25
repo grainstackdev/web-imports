@@ -5,7 +5,7 @@ import path from 'path'
 import glob from "glob"
 import minimist from "minimist"
 import chalk from 'ansi-colors'
-import {transformBareImports} from './index.js'
+import {transformImports} from './index.js'
 
 const args = minimist(process.argv.slice(2))
 const g = args['glob'] || args._[0]
@@ -17,7 +17,7 @@ glob(g, {}, async (err, files) => {
     console.log(chalk.cyan("[web-imports]"), file)
     if (!fs.lstatSync(filepath).isDirectory()) {
       const str = fs.readFileSync(filepath, { encoding: "utf8" })
-      const out = await transformBareImports(str, filepath, prefix)
+      const out = await transformImports(str, filepath, prefix)
       // console.log('out', out)
       fs.writeFileSync(filepath, out, "utf8")
     }

@@ -115,7 +115,7 @@ function makeReplacer(prefix, file) {
   }
 }
 
-export async function transformBareImports(contents, file, prefix) {
+export async function transformImports(contents, file, prefix) {
   prefix = prefix || '/node_modules/'
   if (!file || !file.startsWith('/')) {
     throw new Error('An absolute filepath must be specified.')
