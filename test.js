@@ -1,7 +1,7 @@
 import test from 'tape'
 import fs from 'fs'
 import path from 'path'
-import {transformImports} from "./src/index.js";
+import {transformBareImports} from "./src/index.js";
 
 const testFilePath = path.resolve('./_test.js')
 const actual = fs.readFileSync(testFilePath, {encoding: "utf-8"})
@@ -16,7 +16,7 @@ import {render} from 'preact'
 import {render} from 'react'`
 
 test('transformImports', async (t) => {
-  const out = await transformImports(actual, testFilePath)
+  const out = await transformBareImports(actual, testFilePath)
   t.equal(out, expected)
 })
 
