@@ -37,9 +37,18 @@ async function getTopLevelPackage(file) {
   return pkg
 }
 
-async function getDependencyPackage(packageName, file) {
+async function getDependencyPackage(packageName, topLevelPackage, file) {
   const modulesPath = await escalade(file, (dir, names) => {
-    if (names.includes('node_modules')) {
+    const lastTwoFolders = dir.split('/').slice(-2)
+    const isInnerModules = lastTwoFolders[0] === 'node_modules' && lastTwoFolders[1] === topLevelPackage.name
+
+    if (file === '/Users/yatchee/dev/depl.to/build/web/node_modules/grainbox/dist/esm/history.mjs') {
+      console.log('lastTwoFolders', lastTwoFolders)
+      console.log('isInnerModules', isInnerModules)
+      console.log('packageName', packageName)
+    }
+
+    if (names.includes('node_modules') && !isInnerModules) {
       return 'node_modules'
     }
   })
@@ -63,10 +72,12 @@ function makeReplacer(prefix, file) {
 
       // Check if the package is a devDependencies
       const packageName = getPackageName(bareSpecifier)
-      const depPackage = await getDependencyPackage(packageName, file)
       const topPackage = await getTopLevelPackage(file)
+      const depPackage = await getDependencyPackage(packageName, topPackage, file)
 
-      const isDevDep = (topPackage.devDependencies || {})[packageName] || !depPackage || (depPackage.devDependencies || {})[packageName]
+      const isDevDep = (topPackage.devDependencies || {})[packageName] ||
+        !depPackage ||
+        (depPackage.devDependencies || {})[packageName]
       if (isDevDep) {
         // devDeps are not transformed.
         return match
