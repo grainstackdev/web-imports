@@ -42,12 +42,6 @@ async function getDependencyPackage(packageName, topLevelPackage, file) {
     const lastTwoFolders = dir.split('/').slice(-2)
     const isInnerModules = lastTwoFolders[0] === 'node_modules' && lastTwoFolders[1] === topLevelPackage.name
 
-    if (file === '/Users/yatchee/dev/depl.to/build/web/node_modules/grainbox/dist/esm/history.mjs') {
-      console.log('lastTwoFolders', lastTwoFolders)
-      console.log('isInnerModules', isInnerModules)
-      console.log('packageName', packageName)
-    }
-
     if (names.includes('node_modules') && !isInnerModules) {
       return 'node_modules'
     }
