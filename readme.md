@@ -83,10 +83,10 @@ app.listen(3000)
 ### CLI Usage
 
 ```
-npx web-imports 'artifact/**/*.{js,mjs}' [--prefix '/node_modules/']
+npx web-imports <file/dir/glob> [--prefix '/node_modules/']
 ```
 
-* `<glob>` - Required. A glob selecting all files to transform.
+* `<file/dir/glob>` - Required. Only `.js` or `.mjs` files are considered for transform.
 * `--prefix` - Optional. Equal to `/node_modules/` by default.
 
 ### Programmatic Usage

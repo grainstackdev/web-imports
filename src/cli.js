@@ -8,8 +8,17 @@ import chalk from 'ansi-colors'
 import {transformImports} from './index.js'
 
 const args = minimist(process.argv.slice(2))
-const g = args['glob'] || args._[0]
+const fileDirGlob = args['glob'] || args._[0]
 const prefix = args['prefix'] || '/node_modules/'
+const write = args['write']
+
+let g = fileDirGlob
+
+const dirPath = path.resolve(process.cwd(), g)
+console.log('dirPath', dirPath)
+if (fs.lstatSync(dirPath).isDirectory()) {
+  g = `${fileDirGlob}/**/*.{js,mjs}`
+}
 
 glob(g, {}, async (err, files) => {
   for (const file of files) {
@@ -18,8 +27,11 @@ glob(g, {}, async (err, files) => {
     if (!fs.lstatSync(filepath).isDirectory()) {
       const str = fs.readFileSync(filepath, { encoding: "utf8" })
       const out = await transformImports(str, filepath, prefix)
-      // console.log('out', out)
-      fs.writeFileSync(filepath, out, "utf8")
+      if (write) {
+        fs.writeFileSync(filepath, out, "utf8")
+      } else {
+        console.log(out)
+      }
     }
   }
 })
