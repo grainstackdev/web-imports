@@ -55,7 +55,7 @@ async function getDependencyPackage(packageName, topLevelPackage, file) {
 }
 
 function makeReplacer(prefix, file) {
-  // replacer should never throw.
+  // replacer should 2 never throw.
   return async function replacer(match, _1, bareSpecifier, _3, offset, string) {
     try {
       const modulesPath = await escalade(file, (dir, names) => {
@@ -89,7 +89,7 @@ function makeReplacer(prefix, file) {
         }
       }
 
-      const relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0] || depPackage.main
+      const relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0] || depPackage.main || "index.js"
       if (!relativeImportPath) {
         throw new Error(`Cannot find package '${packageName}'`)
       }
