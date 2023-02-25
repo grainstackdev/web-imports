@@ -1,4 +1,5 @@
-import {resolve} from 'import-meta-resolve'
+import * as resolve from 'resolve.exports'
+import {resolve as metaResolve} from 'import-meta-resolve'
 import chalk from 'ansi-colors'
 import asyncReplace from './asyncReplace.js'
 import escalade from 'escalade'
@@ -24,57 +25,82 @@ function getPackageName(bareSpecifier) {
   return packageName
 }
 
-async function getPackage(file) {
-  const pkgPath = await escalade(file, (dir, names) => {
+async function getTopLevelPackage(file) {
+  const packagePath = await escalade(file, (dir, names) => {
     if (names.includes('package.json')) {
       return 'package.json'
     }
   })
-  const pkgContents = fs.readFileSync(pkgPath, {encoding: "utf-8"})
+  if (!packagePath) return null
+  const pkgContents = fs.readFileSync(packagePath, {encoding: "utf-8"})
+  const pkg = JSON.parse(pkgContents)
+  return pkg
+}
+
+async function getDependencyPackage(packageName, file) {
+  const modulesPath = await escalade(file, (dir, names) => {
+    if (names.includes('node_modules')) {
+      return 'node_modules'
+    }
+  })
+  if (!modulesPath) return null
+  const packagePath = path.resolve(modulesPath, packageName, 'package.json')
+  if (!fs.existsSync(packagePath)) return null
+  const pkgContents = fs.readFileSync(packagePath, {encoding: "utf-8"})
   const pkg = JSON.parse(pkgContents)
   return pkg
 }
 
 function makeReplacer(prefix, file) {
+  // replacer should never throw.
   return async function replacer(match, _1, bareSpecifier, _3, offset, string) {
-    // Check if the package is a devDependencies
-    const packageName = getPackageName(bareSpecifier)
-    const pkg = await getPackage(file)
-    if ((pkg.devDependencies || {})[packageName]) {
-      return match
-    }
-
     try {
-      let url
-
-      try {
-        url = await resolve(bareSpecifier, import.meta.url)
-        if (!url.startsWith('file://')) {
-          // throw new Error('import was not a file:// but instead was ' + url)
-          // console.warn(``)
-          return match // equivalent to not replacing anything.
+      const modulesPath = await escalade(file, (dir, names) => {
+        if (names.includes('node_modules')) {
+          return 'node_modules'
         }
-      } catch (err) {
-        if (bareSpecifier === 'preact' || bareSpecifier === 'react') {
-          // Do not throw, these will be filled in with fallback values
-          // in order to allow htm to be transformed without preact or react.
-          url = ''
+      }) || '/'
+
+      // Check if the package is a devDependencies
+      const packageName = getPackageName(bareSpecifier)
+      const depPackage = await getDependencyPackage(packageName, file)
+      const topPackage = await getTopLevelPackage(file)
+
+      if (!depPackage || !topPackage) {
+        // This could happen because the dep is not installed to node_modules,
+        // and one of those reasons could be because the import is a built-in node:module.
+        const url = await metaResolve(bareSpecifier, import.meta.url)
+        if (url.startsWith('file://')) {
+          throw new Error(`Cannot find package '${packageName}'`)
         } else {
-          throw err
+          // non-files are not transformed.
+          return match
         }
       }
 
-      const filepath = url.slice(7)
-      const directImportPath = path.relative(nodeModulesPath, filepath)
+      const isDevDep = (topPackage.devDependencies || {})[packageName]
+      if (isDevDep) {
+         // devDeps are not transformed.
+        return match
+      }
+
+      const relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0] || depPackage.main
+      if (!relativeImportPath) {
+        throw new Error(`Cannot find package '${packageName}'`)
+      }
+
+      const filepath = path.resolve(modulesPath, packageName, relativeImportPath)
+
+      const directImportPath = path.relative(modulesPath, filepath)
       let absoluteImportPath = prefix + directImportPath
 
-      if (!url) {
-        if (bareSpecifier === 'preact') {
-          absoluteImportPath = '/node_modules/preact/dist/preact.mjs'
-        } else if (bareSpecifier === 'react') {
-          absoluteImportPath = '/node_modules/react/index.js'
-        }
-      }
+      // if (!url) {
+      //   if (bareSpecifier === 'preact') {
+      //     absoluteImportPath = '/node_modules/preact/dist/preact.mjs'
+      //   } else if (bareSpecifier === 'react') {
+      //     absoluteImportPath = '/node_modules/react/index.js'
+      //   }
+      // }
 
       return `${_1}${absoluteImportPath}${_3}`
     } catch (err) {

@@ -18,6 +18,7 @@ glob(g, {}, async (err, files) => {
     if (!fs.lstatSync(filepath).isDirectory()) {
       const str = fs.readFileSync(filepath, { encoding: "utf8" })
       const out = await transformImports(str, filepath, prefix)
+      // console.log('out', out)
       fs.writeFileSync(filepath, out, "utf8")
     }
   }
