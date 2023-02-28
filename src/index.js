@@ -47,8 +47,6 @@ async function getDependencyPackage(packageName, topLevelPackage, file) {
     }
   })
   if (!modulesPath) return null
-  console.log('modulesPath', modulesPath)
-  console.log('packageName', packageName)
   const packagePath = path.resolve(modulesPath, packageName, 'package.json')
   if (!fs.existsSync(packagePath)) return null
   const pkgContents = fs.readFileSync(packagePath, {encoding: "utf-8"})
