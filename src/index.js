@@ -89,7 +89,7 @@ function makeReplacer(prefix, file) {
         }
       }
 
-      const relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0] || depPackage.main || "index.js"
+      const relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0] || depPackage.module || depPackage.main || "index.js"
       if (!relativeImportPath) {
         throw new Error(`Cannot find package '${packageName}'`)
       }
