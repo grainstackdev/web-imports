@@ -89,7 +89,27 @@ function makeReplacer(prefix, file) {
         }
       }
 
-      const relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0] || depPackage.module || depPackage.main || "index.js"
+      let relativeImportPath = resolve.exports(depPackage, bareSpecifier)?.[0]
+      if (!relativeImportPath) {
+        // This is not an esm package with exports field.
+
+        if (bareSpecifier !== packageName) {
+          // It has a subpath, but no exports field,
+          // so it's treated like a commonjs subpath,
+          // I.E. it's a file path.
+          relativeImportPath = './' + bareSpecifier.split('/').slice(1).join('/')
+
+          // .js is added if the extension is missing.
+          // Please specify the extension if your file is not .js.
+          if (!relativeImportPath.endsWith('.js')) {
+            relativeImportPath += '.js'
+          }
+        } else {
+          // Not a subpath, so import the "main" file.
+          relativeImportPath = depPackage.module || depPackage.main || "index.js"
+        }
+      }
+
       if (!relativeImportPath) {
         throw new Error(`Cannot find package '${packageName}'`)
       }
