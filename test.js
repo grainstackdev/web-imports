@@ -13,7 +13,8 @@ import {
 import escalade from '/node_modules/escalade/dist/index.mjs'
 import grainbox from 'grainbox'
 import {render} from 'preact'
-import {render} from 'react'`
+import {render} from 'react'
+import '/node_modules/@yarnpkg/lockfile/index.js'`
 
 test('transformImports', async (t) => {
   const out = await transformImports(actual, testFilePath)

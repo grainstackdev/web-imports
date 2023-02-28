@@ -18,7 +18,7 @@ if (!nodeModulesPath.endsWith('node_modules')) {
 function getPackageName(bareSpecifier) {
   let packageName
   if (bareSpecifier.startsWith('@')) {
-    packageName = bareSpecifier.split('/').slice(0, 2)
+    packageName = bareSpecifier.split('/').slice(0, 2).join('/')
   } else {
     packageName = bareSpecifier.split('/')[0]
   }
@@ -47,6 +47,8 @@ async function getDependencyPackage(packageName, topLevelPackage, file) {
     }
   })
   if (!modulesPath) return null
+  console.log('modulesPath', modulesPath)
+  console.log('packageName', packageName)
   const packagePath = path.resolve(modulesPath, packageName, 'package.json')
   if (!fs.existsSync(packagePath)) return null
   const pkgContents = fs.readFileSync(packagePath, {encoding: "utf-8"})
@@ -109,6 +111,7 @@ function makeReplacer(prefix, file) {
 
       return `${_1}${absoluteImportPath}${_3}`
     } catch (err) {
+      console.error('err', err)
       if (err.message.startsWith('Cannot find package')) {
         const message = err.message.match(/Cannot find package '.*'/g)?.[0]
         console.warn(`${chalk.cyan('[web-imports]')} ${message}\n${chalk.yellow('File:')} ${file}\n${chalk.yellow('Line:')} ${match}`)
