@@ -14,10 +14,13 @@ const write = args['write']
 
 let g = fileDirGlob
 
-const dirPath = path.resolve(process.cwd(), g)
-console.log('dirPath', dirPath)
-if (fs.lstatSync(dirPath).isDirectory()) {
-  g = `${fileDirGlob}/**/*.{js,mjs}`
+try {
+  const dirPath = path.resolve(process.cwd(), g)
+  if (fs.lstatSync(dirPath).isDirectory()) {
+    g = `${fileDirGlob}/**/*.{js,mjs}`
+  }
+} catch (err) {
+  console.error(err)
 }
 
 glob(g, {}, async (err, files) => {
