@@ -12,7 +12,7 @@ const fileDirGlob = args['glob'] || args._[0] || (
   typeof args['write'] === 'string' && args['write'] !== 'true' ? args['write'] : null
 )
 const prefix = args['prefix'] || '/node_modules/'
-const write = args['write'] === 'true' || args['write'] === true
+const write = args['write'] !== 'false' && args['write'] !== false
 
 if (!fileDirGlob) {
   throw new Error('Unable to determine file or glob.')
