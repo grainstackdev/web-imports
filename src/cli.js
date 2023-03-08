@@ -8,9 +8,16 @@ import chalk from 'ansi-colors'
 import {transformImports} from './index.js'
 
 const args = minimist(process.argv.slice(2))
-const fileDirGlob = args['glob'] || args._[0]
+const fileDirGlob = args['glob'] || args._[0] || (
+  typeof args['write'] === 'string' && args['write'] !== 'true' ? args['write'] : null
+)
 const prefix = args['prefix'] || '/node_modules/'
-const write = args['write']
+const write = args['write'] === 'true' || args['write'] === true
+
+if (!fileDirGlob) {
+  throw new Error('Unable to determine file or glob.')
+}
+console.log(chalk.cyan("[web-imports]"), 'Transforming', fileDirGlob)
 
 let g = fileDirGlob
 
@@ -20,7 +27,6 @@ try {
     g = `${fileDirGlob}/**/*.{js,mjs}`
   }
 } catch (err) {
-  console.error(err)
 }
 
 glob(g, {}, async (err, files) => {
