@@ -92,10 +92,16 @@ npx web-imports <file/dir/glob> [--prefix '/node_modules/']
 ### Programmatic Usage
 
 ```js
-import {transformImports} from 'web-imports'
+// import:
+import {transformImports} from 'web-imports'\
+
+// signature:
+async function transformImports(contents: string, file: string, prefix?: ?string) {...}
+
+// example:
 const prefix = '/node_modules/' // optional parameter
-const filename = '' // optional parameter
-js = transformImports(js, prefix, filename)
+const filename = '/foo/bar/baz.js' // required absolute path
+js = transformImports(js, filename, prefix)
 ```
 
 `transformImports` is not expected to throw any errors.
