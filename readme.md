@@ -93,14 +93,14 @@ npx web-imports <file/dir/glob> [--prefix '/node_modules/']
 
 ```js
 // import:
-import {transformImports} from 'web-imports'\
+import {transformImports} from 'web-imports'
 
 // signature:
 async function transformImports(contents: string, file: string, prefix?: ?string) {...}
 
 // example:
 const prefix = '/node_modules/' // optional parameter
-const filename = '/foo/bar/baz.js' // required absolute path
+const filename = '/foo/bar/baz.js' // required absolute path of file being transformed
 js = transformImports(js, filename, prefix)
 ```
 
