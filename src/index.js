@@ -52,11 +52,8 @@ or it could also be the package.json of a module that was installed as a dep of 
 
 If node does not find the package in that node_modules location, then it will move
 up parent folders until it finds a node_modules location which does have the package installed.
-
-The package.json found must have a version which matches the requested version
-by the top level package.json.
 * */
-async function getDependencyPackage(packageName, topLevelPackage, topPackagePath) {
+async function getDependencyPackage(packageName, topLevelPackage, topPackagePath, file) {
   const modulesPackagePath = await escalade(topPackagePath, (dir, names) => {
     if (names.includes('node_modules')) {
       const packagePath = path.resolve(dir, 'node_modules', packageName, 'package.json')
@@ -72,6 +69,15 @@ async function getDependencyPackage(packageName, topLevelPackage, topPackagePath
   return pkg
 }
 
+function isTopLevelInstalledAsNodeModule(topPackage, topPackagePath) {
+  const expectedNodeModulePath = `node_modules/${topPackage.name}/package.json`
+  if (topPackagePath.endsWith(expectedNodeModulePath)) {
+    return true
+  } else {
+    return false
+  }
+}
+
 function makeReplacer(prefix, file) {
   // replacer should 2 never throw.
   return async function replacer(match, _1, bareSpecifier, _3, offset, string) {
@@ -85,7 +91,7 @@ function makeReplacer(prefix, file) {
       // Check if the package is a devDependencies
       const packageName = getPackageName(bareSpecifier)
       const [topPackage, topPackagePath] = await getTopLevelPackage(file)
-      const depPackage = await getDependencyPackage(packageName, topPackage, topPackagePath)
+      const depPackage = await getDependencyPackage(packageName, topPackage, topPackagePath, file)
 
       const isDevDep = (topPackage.devDependencies || {})[packageName] ||
         !depPackage ||
@@ -134,16 +140,16 @@ function makeReplacer(prefix, file) {
 
       const filepath = path.resolve(modulesPath, packageName, relativeImportPath)
 
-      const directImportPath = path.relative(modulesPath, filepath)
-      let absoluteImportPath = prefix + directImportPath
+      const isTopLevelNodeModule = isTopLevelInstalledAsNodeModule(topPackage, topPackagePath)
 
-      // if (!url) {
-      //   if (bareSpecifier === 'preact') {
-      //     absoluteImportPath = '/node_modules/preact/dist/preact.mjs'
-      //   } else if (bareSpecifier === 'react') {
-      //     absoluteImportPath = '/node_modules/react/index.js'
-      //   }
-      // }
+      const directImportPath = path.relative(modulesPath, filepath)
+
+      let absoluteImportPath
+      if (isTopLevelNodeModule) {
+        absoluteImportPath =  prefix + topPackage.name + prefix + directImportPath
+      } else {
+        absoluteImportPath = prefix + directImportPath
+      }
 
       return `${_1}${absoluteImportPath}${_3}`
     } catch (err) {
