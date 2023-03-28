@@ -34,22 +34,40 @@ async function getTopLevelPackage(file) {
   if (!packagePath) return null
   const pkgContents = fs.readFileSync(packagePath, {encoding: "utf-8"})
   const pkg = JSON.parse(pkgContents)
-  return pkg
+  return [pkg, packagePath]
 }
 
-async function getDependencyPackage(packageName, topLevelPackage, file) {
-  const modulesPath = await escalade(file, (dir, names) => {
-    const lastTwoFolders = dir.split('/').slice(-2)
-    const isInnerModules = lastTwoFolders[0] === 'node_modules' && lastTwoFolders[1] === topLevelPackage.name
+/*
+Finds the dependency's package.json.
 
-    if (names.includes('node_modules') && !isInnerModules) {
-      return 'node_modules'
+In the `file`, there was an import statement which resolves to a file somewhere.
+The goal of this function is to find the package.json of the module being imported.
+So, it should imitate node's resolution algorithm.
+
+To resolve, node looks for a node_modules folder at the same level as the
+top level package.json.
+
+For reference, the top level package.json would be the main project's package.json
+or it could also be the package.json of a module that was installed as a dep of the main project.
+
+If node does not find the package in that node_modules location, then it will move
+up parent folders until it finds a node_modules location which does have the package installed.
+
+The package.json found must have a version which matches the requested version
+by the top level package.json.
+* */
+async function getDependencyPackage(packageName, topLevelPackage, topPackagePath, file) {
+  const modulesPackagePath = await escalade(topPackagePath, (dir, names) => {
+    if (names.includes('node_modules')) {
+      const packagePath = path.resolve(dir, 'node_modules', packageName, 'package.json')
+      const exists = fs.existsSync(packagePath)
+      if (exists) {
+        return packagePath
+      }
     }
   })
-  if (!modulesPath) return null
-  const packagePath = path.resolve(modulesPath, packageName, 'package.json')
-  if (!fs.existsSync(packagePath)) return null
-  const pkgContents = fs.readFileSync(packagePath, {encoding: "utf-8"})
+  if (!modulesPackagePath) return null
+  const pkgContents = fs.readFileSync(modulesPackagePath, {encoding: "utf-8"})
   const pkg = JSON.parse(pkgContents)
   return pkg
 }
@@ -66,8 +84,8 @@ function makeReplacer(prefix, file) {
 
       // Check if the package is a devDependencies
       const packageName = getPackageName(bareSpecifier)
-      const topPackage = await getTopLevelPackage(file)
-      const depPackage = await getDependencyPackage(packageName, topPackage, file)
+      const [topPackage, topPackagePath] = await getTopLevelPackage(file)
+      const depPackage = await getDependencyPackage(packageName, topPackage, topPackagePath, file)
 
       const isDevDep = (topPackage.devDependencies || {})[packageName] ||
         !depPackage ||
