@@ -56,7 +56,7 @@ up parent folders until it finds a node_modules location which does have the pac
 The package.json found must have a version which matches the requested version
 by the top level package.json.
 * */
-async function getDependencyPackage(packageName, topLevelPackage, topPackagePath, file) {
+async function getDependencyPackage(packageName, topLevelPackage, topPackagePath) {
   const modulesPackagePath = await escalade(topPackagePath, (dir, names) => {
     if (names.includes('node_modules')) {
       const packagePath = path.resolve(dir, 'node_modules', packageName, 'package.json')
@@ -85,7 +85,7 @@ function makeReplacer(prefix, file) {
       // Check if the package is a devDependencies
       const packageName = getPackageName(bareSpecifier)
       const [topPackage, topPackagePath] = await getTopLevelPackage(file)
-      const depPackage = await getDependencyPackage(packageName, topPackage, topPackagePath, file)
+      const depPackage = await getDependencyPackage(packageName, topPackage, topPackagePath)
 
       const isDevDep = (topPackage.devDependencies || {})[packageName] ||
         !depPackage ||
